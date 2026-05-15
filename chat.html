@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Lumina — DeepSeek Messenger</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'SF Pro Display', 'Segoe UI', Roboto, Helvetica, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .theme-dark-1 { background: #050505; }
+        .theme-dark-2 { background: #0a0a0f; }
+        .theme-dark-3 { background: #0d1117; }
+        .theme-dark-4 { background: #12121a; }
+        .theme-light-1 { background: #ffffff; }
+        .theme-light-2 { background: #f8f9fa; }
+        .theme-light-3 { background: #f0f2f5; }
+        .theme-light-4 { background: #fefaf5; }
+
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 10px; }
+        .theme-light-1 ::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.12); }
+
+        .messenger-container {
+            display: flex;
+            height: 100%;
+            width: 100%;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .chats-sidebar {
+            width: 340px;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .theme-light-1 .chats-sidebar {
+            background: rgba(0, 0, 0, 0.02);
+            border-right: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .chats-header {
+            padding: 24px 20px 16px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .chats-header h2 {
+            color: white;
+            font-size: 22px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+            margin-bottom: 16px;
+        }
+
+        .theme-light-1 .chats-header h2 { color: #1a1a1a; }
+
+        .search-container {
+            position: relative;
+            margin-bottom: 16px;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 16px;
+            opacity: 0.5;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 16px 12px 40px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .search-input:focus {
+            border-color: rgba(0, 122, 255, 0.5);
+        }
+
+        .theme-light-1 .search-input {
+            background: white;
+            border-color: rgba(0, 0, 0, 0.08);
+            color: #1a1a1a;
+        }
+
+        .user-profile {
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .user-profile:hover { background: rgba(255, 255, 255, 0.04); }
+
+        .user-avatar {
+            width: 52px;
+            height: 52px;
+            border-radius: 28px;
+            background: linear-gradient(135deg, #007aff, #00c6ff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 20px;
+            color: white;
+        }
+
+        .user-info h4 {
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .user-info .user-id {
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 11px;
+            font-family: monospace;
+            margin-top: 2px;
+        }
+
+        .theme-light-1 .user-info h4 { color: #1a1a1a; }
+        .theme-light-1 .user-info .user-id { color: rgba(0, 0, 0, 0.4); }
+
+        .tabs {
+            display: flex;
+            padding: 0 20px;
+            gap: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            margin-top: 8px;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 12px 0;
+            font-size: 14px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .tab-btn.active { color: #007aff; }
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #007aff;
+        }
+
+        .chats-list, .channels-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+        }
+
+        .channels-list { display: none; }
+        .channels-list.active { display: block; }
+
+        .chat-item, .channel-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 4px;
+        }
+
+        .chat-item:hover, .channel-item:hover { background: rgba(255, 255, 255, 0.05); }
+        .chat-item.active, .channel-item.active { background: rgba(0, 122, 255, 0.12); }
+
+        .chat-avatar, .channel-avatar {
+            width: 52px;
+            height: 52px;
+            border-radius: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 22px;
+            color: white;
+        }
+
+        .chat-info, .channel-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .chat-name, .channel-name {
+            color: white;
+            font-weight: 600;
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+
+        .chat-last-message, .channel-members {
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 12px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .theme-light-1 .chat-name,
+        .theme-light-1 .channel-name { color: #1a1a1a; }
+
+        .create-channel-btn {
+            margin: 12px 20px;
+            padding: 12px;
+            background: rgba(0, 122, 255, 0.15);
+            border: 1px solid rgba(0, 122, 255, 0.3);
+            border-radius: 60px;
+            color: #007aff;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .create-channel-btn:hover { background: rgba(0, 122, 255, 0.25); }
+
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .chat-area-header {
+            padding: 20px 28px;
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .current-chat-avatar {
+            width: 52px;
+            height: 52px;
+            border-radius: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+        }
+
+        .current-chat-info h3 {
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .current-chat-info p {
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 12px;
+            margin-top: 3px;
+        }
+
+        .channel-actions { display: flex; gap: 12px; }
+        .channel-action-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 60px;
+            color: white;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .messages-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .message {
+            display: flex;
+            gap: 12px;
+            max-width: 70%;
+            animation: fadeIn 0.25s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.my-message { align-self: flex-end; flex-direction: row-reverse; }
+
+        .message-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .message-content {
+            background: rgba(255, 255, 255, 0.06);
+            padding: 12px 18px;
+            border-radius: 22px;
+            border-bottom-left-radius: 6px;
+        }
+
+        .my-message .message-content {
+            background: #007aff;
+            border-bottom-left-radius: 22px;
+            border-bottom-right-radius: 6px;
+        }
+
+        .message-sender {
+            font-size: 11px;
+            font-weight: 600;
+            color: #007aff;
+            margin-bottom: 4px;
+        }
+
+        .my-message .message-sender { color: rgba(255, 255, 255, 0.7); }
+        .message-text { color: white; font-size: 14px; line-height: 1.5; word-wrap: break-word; }
+        .theme-light-1 .message-text { color: #1a1a1a; }
+        .theme-light-1 .message-content { background: rgba(0, 0, 0, 0.05); }
+        .message-time { font-size: 10px; color: rgba(255, 255, 255, 0.35); margin-top: 5px; }
+
+        .input-area {
+            padding: 20px 28px 24px 28px;
+            background: rgba(255, 255, 255, 0.02);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            gap: 12px;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 14px 22px;
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            font-size: 15px;
+            outline: none;
+        }
+
+        .message-input:focus { border-color: #007aff; }
+        .theme-light-1 .message-input {
+            background: white;
+            border-color: rgba(0, 0, 0, 0.08);
+            color: #1a1a1a;
+        }
+
+        .send-btn {
+            background: #007aff;
+            border: none;
+            width: 52px;
+            height: 52px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(16px);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.25s;
+        }
+
+        .modal-overlay.open { opacity: 1; visibility: visible; }
+
+        .modal {
+            background: rgba(25, 25, 35, 0.98);
+            backdrop-filter: blur(30px);
+            border-radius: 32px;
+            padding: 32px;
+            width: 90%;
+            max-width: 460px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transform: scale(0.95);
+            transition: transform 0.25s;
+        }
+
+        .modal-overlay.open .modal { transform: scale(1); }
+        .theme-light-1 .modal { background: rgba(255, 255, 255, 0.98); }
+
+        .modal h3 {
+            color: white;
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 24px;
+        }
+
+        .modal .id-display {
+            background: rgba(0, 122, 255, 0.1);
+            padding: 10px 14px;
+            border-radius: 14px;
+            font-family: monospace;
+            font-size: 18px;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 20px;
+            color: #007aff;
+        }
+
+        .modal input, .modal textarea {
+            width: 100%;
+            padding: 14px 18px;
+            margin-bottom: 16px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            font-size: 15px;
+            outline: none;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 14px;
+            border-radius: 60px;
+            border: none;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .modal-btn-primary { background: #007aff; color: white; }
+        .modal-btn-secondary { background: rgba(255, 255, 255, 0.08); color: white; }
+
+        .settings-sidebar {
+            position: fixed;
+            top: 0;
+            left: -300px;
+            width: 280px;
+            height: 100%;
+            background: rgba(20, 20, 28, 0.98);
+            backdrop-filter: blur(30px);
+            padding: 28px;
+            transition: left 0.3s;
+            z-index: 1000;
+        }
+
+        .settings-sidebar.open { left: 0; }
+
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            color: white;
+        }
+
+        .close-settings {
+            background: none;
+            border: none;
+            font-size: 26px;
+            color: white;
+            cursor: pointer;
+        }
+
+        .section-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: rgba(255, 255, 255, 0.4);
+            margin-bottom: 14px;
+            margin-top: 24px;
+        }
+
+        .theme-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .theme-btn {
+            aspect-ratio: 1;
+            border-radius: 14px;
+            border: 2px solid transparent;
+            cursor: pointer;
+        }
+
+        .theme-btn.active { border-color: #007aff; }
+        .dark-1 { background: #050505; }
+        .dark-2 { background: #0a0a0f; }
+        .dark-3 { background: #0d1117; }
+        .dark-4 { background: #12121a; }
+        .light-1 { background: #ffffff; border: 1px solid #ddd; }
+        .light-2 { background: #f8f9fa; border: 1px solid #ddd; }
+        .light-3 { background: #f0f2f5; border: 1px solid #ddd; }
+        .light-4 { background: #fefaf5; border: 1px solid #ddd; }
+
+        @media (max-width: 768px) {
+            .chats-sidebar {
+                position: fixed;
+                left: 0;
+                top: 0;
+                height: 100%;
+                z-index: 500;
+                transform: translateX(-100%);
+                width: 300px;
+            }
+            .chats-sidebar.mobile-open { transform: translateX(0); }
+            .message { max-width: 85%; }
+            .mobile-menu-btn { display: flex; }
+        }
+
+        @media (min-width: 769px) { .mobile-menu-btn { display: none; } }
+
+        .mobile-menu-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 8px;
+            color: white;
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body class="theme-dark-1">
+    <div class="messenger-container">
+        <div class="chats-sidebar" id="chatsSidebar">
+            <div class="chats-header">
+                <h2>Lumina</h2>
+                <div class="search-container">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" class="search-input" id="searchInput" placeholder="Поиск..." autocomplete="off">
+                </div>
+            </div>
+
+            <div class="user-profile" id="profileBtn">
+                <div class="user-avatar" id="userAvatar"></div>
+                <div class="user-info">
+                    <h4 id="userName"></h4>
+                    <div class="user-id" id="userId"></div>
+                </div>
+            </div>
+
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="chats">💬 Чаты</button>
+                <button class="tab-btn" data-tab="channels">📢 Каналы</button>
+            </div>
+
+            <div class="chats-list" id="chatsList"></div>
+            <div class="channels-list" id="channelsList"></div>
+            
+            <button class="create-channel-btn" id="createChannelBtn">➕ Создать канал</button>
+        </div>
+
+        <div class="chat-area">
+            <div class="chat-area-header">
+                <div class="header-left">
+                    <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
+                    <div class="current-chat-avatar" id="currentChatAvatar">✨</div>
+                    <div class="current-chat-info">
+                        <h3 id="currentChatName">DeepSeek AI</h3>
+                        <p id="currentChatStatus">онлайн • готов к диалогу</p>
+                    </div>
+                </div>
+                <div class="channel-actions" id="channelActions" style="display: none;">
+                    <button class="channel-action-btn" id="enableAdsBtn">📢 Включить рекламу</button>
+                    <button class="channel-action-btn" id="subscribeBtn">🔔 Подписаться</button>
+                </div>
+            </div>
+
+            <div class="messages-area" id="messagesArea"></div>
+
+            <div class="input-area">
+                <input type="text" class="message-input" id="messageInput" placeholder="Сообщение..." autocomplete="off" spellcheck="false">
+                <button class="send-btn" id="sendBtn">📤</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно профиля -->
+    <div class="modal-overlay" id="profileModal">
+        <div class="modal">
+            <h3>👤 Мой профиль</h3>
+            <div class="id-display" id="displayUserId">ID: ------</div>
+            <input type="text" id="editName" placeholder="Имя" autocomplete="off">
+            <input type="tel" id="editPhone" placeholder="Телефон" autocomplete="off">
+            <input type="email" id="editEmail" placeholder="Email" autocomplete="off">
+            <input type="password" id="editPassword" placeholder="Новый пароль" autocomplete="new-password">
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-primary" id="saveProfileBtn">Сохранить</button>
+                <button class="modal-btn modal-btn-secondary" id="closeProfileBtn">Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно создания канала -->
+    <div class="modal-overlay" id="createChannelModal">
+        <div class="modal">
+            <h3>📢 Создать канал</h3>
+            <input type="text" id="channelName" placeholder="Название канала" autocomplete="off">
+            <textarea id="channelDesc" placeholder="Описание канала" rows="3"></textarea>
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-primary" id="confirmCreateChannelBtn">Создать</button>
+                <button class="modal-btn modal-btn-secondary" id="closeChannelModalBtn">Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Панель настроек темы -->
+    <div class="settings-sidebar" id="settingsSidebar">
+        <div class="sidebar-header">
+            <h3>Оформление</h3>
+            <button class="close-settings" id="closeSettings">✕</button>
+        </div>
+        <div class="section-title">🌙 Тёмная тема</div>
+        <div class="theme-grid">
+            <button class="theme-btn dark-1" data-theme="theme-dark-1"></button>
+            <button class="theme-btn dark-2" data-theme="theme-dark-2"></button>
+            <button class="theme-btn dark-3" data-theme="theme-dark-3"></button>
+            <button class="theme-btn dark-4" data-theme="theme-dark-4"></button>
+        </div>
+        <div class="section-title">☀️ Светлая тема</div>
+        <div class="theme-grid">
+            <button class="theme-btn light-1" data-theme="theme-light-1"></button>
+            <button class="theme-btn light-2" data-theme="theme-light-2"></button>
+            <button class="theme-btn light-3" data-theme="theme-light-3"></button>
+            <button class="theme-btn light-4" data-theme="theme-light-4"></button>
+        </div>
+    </div>
+
+    <script>
+        // ==================== ПОЛЬЗОВАТЕЛЬ ====================
+        let currentUser = JSON.parse(localStorage.getItem('lumina_current_user')) || { username: 'Алексей' };
+        let userProfile = JSON.parse(localStorage.getItem('lumina_user_profile')) || {
+            name: currentUser.username,
+            phone: '',
+            email: '',
+            password: '',
+            userId: localStorage.getItem('lumina_user_id') || Math.floor(100000 + Math.random() * 900000).toString()
+        };
+        
+        if (!localStorage.getItem('lumina_user_id')) {
+            localStorage.setItem('lumina_user_id', userProfile.userId);
+        }
+        userProfile.userId = localStorage.getItem('lumina_user_id');
+        currentUser.username = userProfile.name;
+
+        // ==================== ЧАТЫ ====================
+        let chats = JSON.parse(localStorage.getItem('lumina_chats')) || [
+            {
+                id: 'deepseek_ai',
+                name: 'DeepSeek AI',
+                avatar: '✨',
+                color: '#6366f1',
+                type: 'ai',
+                messages: [
+                    { sender: 'DeepSeek AI', text: 'Привет! Я DeepSeek — твой ИИ-помощник ✨', time: getTime() }
+                ]
+            }
+        ];
+        
+        let channels = JSON.parse(localStorage.getItem('lumina_channels')) || [];
+
+        function getTime() {
+            return new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function saveChats() { localStorage.setItem('lumina_chats', JSON.stringify(chats)); }
+        function saveChannels() { localStorage.setItem('lumina_channels', JSON.stringify(channels)); }
+
+        // ==================== DEEPSEEK AI ОТВЕТЫ ====================
+        function getDeepSeekResponse(message, userName) {
+            const msg = message.toLowerCase().trim();
+            if (msg.match(/привет|здравствуй|хай/)) return `Привет, ${userName}! ✨ Рад тебя видеть. Как дела?`;
+            if (msg.match(/как дела|как ты/)) return `У меня всё отлично, ${userName}! Спасибо, что спросил. Чем могу помочь?`;
+            if (msg.match(/как тебя зовут|ты кто/)) return `Я DeepSeek — искусственный интеллект, созданный для общения и помощи 🤖`;
+            if (msg.match(/время|который час/)) return `Сейчас ${new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}, ${userName}!`;
+            if (msg.match(/спасибо/)) return `Пожалуйста, ${userName}! Всегда рад помочь 🌟`;
+            if (msg.match(/помощь|что ты умеешь/)) return `${userName}, я умею общаться, отвечать на вопросы, помогать с идеями и просто поддерживать беседу!`;
+            return `Понял, ${userName}. Расскажи подробнее, я внимательно слушаю 😊`;
+        }
+
+        // ==================== ОТРИСОВКА ====================
+        let activeChatId = null;
+        let activeChannelId = null;
+        let currentTab = 'chats';
+        let searchQuery = '';
+
+        function renderChatsList() {
+            const container = document.getElementById('chatsList');
+            if (!container) return;
+            
+            let filtered = chats;
+            if (searchQuery) {
+                filtered = chats.filter(chat => chat.name.toLowerCase().includes(searchQuery));
+            }
+            
+            container.innerHTML = '';
+            filtered.forEach(chat => {
+                const lastMsg = chat.messages[chat.messages.length - 1];
+                const lastMsgText = lastMsg ? (lastMsg.text.length > 35 ? lastMsg.text.substring(0, 35) + '...' : lastMsg.text) : 'Нет сообщений';
+                
+                const div = document.createElement('div');
+                div.className = `chat-item ${activeChatId === chat.id ? 'active' : ''}`;
+                div.innerHTML = `
+                    <div class="chat-avatar" style="background: ${chat.color}">${chat.avatar}</div>
+                    <div class="chat-info">
+                        <div class="chat-name">${escapeHtml(chat.name)}</div>
+                        <div class="chat-last-message">${escapeHtml(lastMsgText)}</div>
+                    </div>
+                `;
+                div.onclick = () => selectChat(chat.id);
+                container.appendChild(div);
+            });
+        }
+
+        function renderChannelsList() {
+            const container = document.getElementById('channelsList');
+            if (!container) return;
+            
+            let filtered = channels;
+            if (searchQuery) {
+                filtered = channels.filter(ch => ch.name.toLowerCase().includes(searchQuery));
+            }
+            
+            container.innerHTML = '';
+            filtered.forEach(channel => {
+                const isSubscribed = channel.subscribers.includes(userProfile.userId);
+                const div = document.createElement('div');
+                div.className = `channel-item ${activeChannelId === channel.id ? 'active' : ''}`;
+                div.innerHTML = `
+                    <div class="channel-avatar" style="background: #ff9500">${channel.avatar || '📢'}</div>
+                    <div class="channel-info">
+                        <div class="channel-name">${escapeHtml(channel.name)}</div>
+                        <div class="channel-members">👥 ${channel.subscribers.length} подписчиков</div>
+                    </div>
+                    <div style="font-size: 12px;">${isSubscribed ? '✓' : '🔔'}</div>
+                `;
+                div.onclick = () => selectChannel(channel);
+                container.appendChild(div);
+            });
+        }
+
+        function renderMessages(chatId, messages) {
+            const container = document.getElementById('messagesArea');
+            if (!container) return;
+            container.innerHTML = '';
+            
+            if (!messages || messages.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: rgba(255,255,255,0.3); padding: 60px;">Нет сообщений. Напишите что-нибудь!</div>';
+                return;
+            }
+            
+            messages.forEach(msg => {
+                const isMy = msg.sender === userProfile.name;
+                const avatar = isMy ? userProfile.name.charAt(0).toUpperCase() : msg.sender.charAt(0).toUpperCase();
+                const avatarColor = isMy ? '#007aff' : (chatId === 'deepseek_ai' ? '#6366f1' : '#888');
+                const senderName = msg.sender;
+                
+                const div = document.createElement('div');
+                div.className = `message ${isMy ? 'my-message' : ''}`;
+                div.innerHTML = `
+                    <div class="message-avatar" style="background: ${avatarColor}">${avatar}</div>
+                    <div class="message-content">
+                        <div class="message-sender">${escapeHtml(senderName)}</div>
+                        <div class="message-text">${escapeHtml(msg.text)}</div>
+                        <div class="message-time">${msg.time}</div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // ==================== ВЫБОР ЧАТА/КАНАЛА ====================
+        function selectChat(chatId) {
+            activeChatId = chatId;
+            activeChannelId = null;
+            const chat = chats.find(c => c.id === chatId);
+            if (!chat) return;
+            
+            document.getElementById('currentChatName').innerText = chat.name;
+            document.getElementById('currentChatAvatar').innerText = chat.avatar;
+            document.getElementById('currentChatAvatar').style.background = chat.color;
+            document.getElementById('currentChatStatus').innerHTML = chat.type === 'ai' ? 'DeepSeek AI • онлайн ✨' : 'онлайн';
+            document.getElementById('channelActions').style.display = 'none';
+            document.getElementById('messageInput').disabled = false;
+            document.getElementById('sendBtn').disabled = false;
+            
+            renderMessages(chatId, chat.messages);
+            renderChatsList();
+            document.getElementById('chatsSidebar').classList.remove('mobile-open');
+        }
+
+        function selectChannel(channel) {
+            activeChannelId = channel.id;
+            activeChatId = null;
+            
+            document.getElementById('currentChatName').innerText = channel.name;
+            document.getElementById('currentChatAvatar').innerText = channel.avatar || '📢';
+            document.getElementById('currentChatAvatar').style.background = '#ff9500';
+            document.getElementById('currentChatStatus').innerHTML = `👥 ${channel.subscribers.length} подписчиков${channel.adsEnabled ? ' • 📢 Реклама' : ''}`;
+            
+            const isSubscribed = channel.subscribers.includes(userProfile.userId);
+            const isOwner = channel.ownerId === userProfile.userId;
+            
+            document.getElementById('channelActions').style.display = 'flex';
+            document.getElementById('subscribeBtn').innerHTML = isSubscribed ? '✅ Отписаться' : '🔔 Подписаться';
+            document.getElementById('enableAdsBtn').style.display = isOwner ? 'flex' : 'none';
+            
+            if (isOwner && !channel.adsEnabled) {
+                document.getElementById('enableAdsBtn').innerHTML = channel.subscribers.length >= 500 ? '📢 Включить рекламу' : `🔒 Нужно ${500 - channel.subscribers.length} подписчиков`;
+            } else if (isOwner && channel.adsEnabled) {
+                document.getElementById('enableAdsBtn').innerHTML = '💰 Реклама активна';
+            }
+            
+            renderMessages(channel.id, channel.messages);
+            renderChannelsList();
+            document.getElementById('chatsSidebar').classList.remove('mobile-open');
+        }
+
+        // ==================== ОТПРАВКА СООБЩЕНИЙ ====================
+        function sendMessage() {
+            if (!activeChatId && !activeChannelId) return;
+            
+            const input = document.getElementById('messageInput');
+            const text = input.value.trim();
+            if (!text) return;
+            
+            const targetId = activeChatId || activeChannelId;
+            const isChannel = !!activeChannelId;
+            const target = isChannel ? channels.find(c => c.id === targetId) : chats.find(c => c.id === targetId);
+            
+            if (!target) return;
+            
+            // Добавляем сообщение пользователя
+            target.messages.push({
+                sender: userProfile.name,
+                text: text,
+                time: getTime()
+            });
+            
+            if (isChannel) saveChannels();
+            else saveChats();
+            
+            // Ответ от DeepSeek если это AI чат
+            if (targetId === 'deepseek_ai') {
+                setTimeout(() => {
+                    const response = getDeepSeekResponse(text, userProfile.name);
+                    target.messages.push({
+                        sender: 'DeepSeek AI',
+                        text: response,
+                        time: getTime()
+                    });
+                    saveChats();
+                    if (activeChatId === 'deepseek_ai') {
+                        renderMessages('deepseek_ai', chats.find(c => c.id === 'deepseek_ai').messages);
+                    }
+                }, 600);
+            }
+            
+            if (activeChatId) renderMessages(activeChatId, target.messages);
+            if (activeChannelId) renderMessages(activeChannelId, target.messages);
+            
+            input.value = '';
+            renderChatsList();
+            if (currentTab === 'channels') renderChannelsList();
+        }
+
+        // ==================== КАНАЛЫ ====================
+        function createChannel(name, description) {
+            if (!name) {
+                alert('Введите название канала');
+                return false;
+            }
+            
+            const newChannel = {
+                id: 'ch_' + Date.now() + '_' + Math.floor(Math.random() * 10000),
+                name: name,
+                description: description || '',
+                avatar: '📢',
+                ownerId: userProfile.userId,
+                subscribers: [userProfile.userId],
+                adsEnabled: false,
+                messages: [
+                    { sender: 'Система', text: `Канал "${name}" создан!`, time: getTime() }
+                ],
+                createdAt: Date.now()
+            };
+            
+            channels.push(newChannel);
+            saveChannels();
+            
+            // Добавляем чат канала в список чатов
+            chats.push({
+                id: newChannel.id,
+                name: name,
+                avatar: '📢',
+                color: '#ff9500',
+                type: 'channel',
+                messages: newChannel.messages
+            });
+            saveChats();
+            
+            return true;
+        }
+
+        function subscribeToChannel(channelId) {
+            const channel = channels.find(c => c.id === channelId);
+            if (!channel) return;
+            
+            if (!channel.subscribers.includes(userProfile.userId)) {
+                channel.subscribers.push(userProfile.userId);
+                saveChannels();
+                
+                // Добавляем системное сообщение
+                channel.messages.push({
+                    sender: 'Система',
+                    text: `${userProfile.name} подписался на канал`,
+                    time: getTime()
+                });
+                saveChannels();
+                
+                if (activeChannelId === channelId) {
+                    renderMessages(channelId, channel.messages);
+                }
+            } else {
+                channel.subscribers = channel.subscribers.filter(id => id !== userProfile.userId);
+                saveChannels();
+                
+                channel.messages.push({
+                    sender: 'Система',
+                    text: `${userProfile.name} отписался от канала`,
+                    time: getTime()
+                });
+                saveChannels();
+                
+                if (activeChannelId === channelId) {
+                    renderMessages(channelId, channel.messages);
+                }
+            }
+            
+            renderChannelsList();
+            if (activeChannelId === channelId) {
+                document.getElementById('currentChatStatus').innerHTML = `👥 ${channel.subscribers.length} подписчиков${channel.adsEnabled ? ' • 📢 Реклама' : ''}`;
+            }
+        }
+
+        function enableAdsForChannel(channelId) {
+            const channel = channels.find(c => c.id === channelId);
+            if (!channel || channel.ownerId !== userProfile.userId) {
+                alert('Только владелец канала может включить рекламу');
+                return;
+            }
+            
+            if (channel.subscribers.length >= 500) {
+                channel.adsEnabled = true;
+                saveChannels();
+                alert('Реклама включена! Теперь вы можете зарабатывать на рекламных постах.');
+                
+                channel.messages.push({
+                    sender: 'Система',
+                    text: '📢 Реклама включена в канале!',
+                    time: getTime()
+                });
+                saveChannels();
+                
+                if (activeChannelId === channelId) {
+                    renderMessages(channelId, channel.messages);
+                    document.getElementById('currentChatStatus').innerHTML = `👥 ${channel.subscribers.length} подписчиков • 📢 Реклама`;
+                }
+            } else {
+                alert(`Недостаточно подписчиков! Нужно ${500 - channel.subscribers.length} подписчиков до 500.`);
+            }
+        }
+
+        // ==================== ПРОФИЛЬ ====================
+        function updateProfileDisplay() {
+            document.getElementById('userName').innerText = userProfile.name;
+            document.getElementById('userAvatar').innerText = userProfile.name.charAt(0).toUpperCase();
+            document.getElementById('userId').innerHTML = `🔑 ${userProfile.userId}`;
+            document.getElementById('displayUserId').innerHTML = `🆔 ID: ${userProfile.userId}`;
+            document.getElementById('editName').value = userProfile.name;
+            document.getElementById('editPhone').value = userProfile.phone || '';
+            document.getElementById('editEmail').value = userProfile.email || '';
+        }
+
+        function saveProfile() {
+            userProfile.name = document.getElementById('editName').value || userProfile.name;
+            userProfile.phone = document.getElementById('editPhone').value;
+            userProfile.email = document.getElementById('editEmail').value;
+            const newPass = document.getElementById('editPassword').value;
+            if (newPass) userProfile.password = newPass;
+            
+            localStorage.setItem('lumina_user_profile', JSON.stringify(userProfile));
+            localStorage.setItem('lumina_current_user', JSON.stringify({ username: userProfile.name }));
+            currentUser.username = userProfile.name;
+            
+            updateProfileDisplay();
+            document.getElementById('profileModal').classList.remove('open');
+            
+            // Обновляем имена в чатах
+            renderChatsList();
+            if (activeChatId) {
+                const chat = chats.find(c => c.id === activeChatId);
+                if (chat) renderMessages(activeChatId, chat.messages);
+            }
+        }
+
+        // ==================== ТЕМЫ ====================
+        const savedTheme = localStorage.getItem('lumina_theme') || 'theme-dark-1';
+        document.body.className = savedTheme;
+        
+        function highlightTheme() {
+            const current = document.body.className;
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                if (btn.dataset.theme === current) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+        }
+        
+        document.querySelectorAll('.theme-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.body.className = btn.dataset.theme;
+                localStorage.setItem('lumina_theme', btn.dataset.theme);
+                highlightTheme();
+            });
+        });
+
+        // ==================== ИНИЦИАЛИЗАЦИЯ ====================
+        const settingsSidebar = document.getElementById('settingsSidebar');
+        const openSettingsBtn = document.getElementById('openSettingsBtn');
+        const closeSettingsBtn = document.getElementById('closeSettings');
+        
+        if (openSettingsBtn) {
+            openSettingsBtn.onclick = (e) => { e.stopPropagation(); settingsSidebar.classList.add('open'); highlightTheme(); };
+        }
+        if (closeSettingsBtn) closeSettingsBtn.onclick = () => settingsSidebar.classList.remove('open');
+        
+        document.getElementById('profileBtn').onclick = () => document.getElementById('profileModal').classList.add('open');
+        document.getElementById('saveProfileBtn').onclick = saveProfile;
+        document.getElementById('closeProfileBtn').onclick = () => document.getElementById('profileModal').classList.remove('open');
+        
+        // Создание канала
+        document.getElementById('createChannelBtn').onclick = () => document.getElementById('createChannelModal').classList.add('open');
+        document.getElementById('confirmCreateChannelBtn').onclick = () => {
+            const name = document.getElementById('channelName').value;
+            const desc = document.getElementById('channelDesc').value;
+            if (createChannel(name, desc)) {
+                document.getElementById('createChannelModal').classList.remove('open');
+                document.getElementById('channelName').value = '';
+                document.getElementById('channelDesc').value = '';
+                renderChannelsList();
+                renderChatsList();
+            }
+        };
+        document.getElementById('closeChannelModalBtn').onclick = () => document.getElementById('createChannelModal').classList.remove('open');
+        
+        // Действия с каналом
+        document.getElementById('subscribeBtn').onclick = () => {
+            if (activeChannelId) subscribeToChannel(activeChannelId);
+        };
+        document.getElementById('enableAdsBtn').onclick = () => {
+            if (activeChannelId) enableAdsForChannel(activeChannelId);
+        };
+        
+        // Отправка сообщений
+        document.getElementById('messageInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+        document.getElementById('sendBtn').addEventListener('click', sendMessage);
+        
+        // Поиск
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            searchQuery = e.target.value.toLowerCase();
+            if (currentTab === 'chats') renderChatsList();
+            else renderChannelsList();
+        });
+        
+        // Вкладки
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentTab = btn.dataset.tab;
+                
+                document.getElementById('chatsList').style.display = currentTab === 'chats' ? 'block' : 'none';
+                document.getElementById('channelsList').classList.toggle('active', currentTab === 'channels');
+                document.getElementById('channelsList').style.display = currentTab === 'channels' ? 'block' : 'none';
+                
+                if (currentTab === 'channels') renderChannelsList();
+            });
+        });
+        
+        // Мобильное меню
+        document.getElementById('mobileMenuBtn').onclick = () => document.getElementById('chatsSidebar').classList.add('mobile-open');
+        document.addEventListener('click', (e) => {
+            const sidebar = document.getElementById('chatsSidebar');
+            if (sidebar.classList.contains('mobile-open') && !sidebar.contains(e.target) && e.target !== document.getElementById('mobileMenuBtn')) {
+                sidebar.classList.remove('mobile-open');
+            }
+        });
+        
+        // Запуск
+        updateProfileDisplay();
+        renderChatsList();
+        renderChannelsList();
+        selectChat('deepseek_ai');
+        highlightTheme();
+    </script>
+</body>
+</html>

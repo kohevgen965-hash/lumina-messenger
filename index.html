@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Lumina — Вход</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            transition: background-color 0.3s ease;
+        }
+
+        /* 8 тем */
+        .theme-dark-1 { background: #0a0a0a; }
+        .theme-dark-2 { background: #1a1a1a; }
+        .theme-dark-3 { background: #0f172a; }
+        .theme-dark-4 { background: #1e1b2e; }
+        .theme-light-1 { background: #ffffff; }
+        .theme-light-2 { background: #f5f5f7; }
+        .theme-light-3 { background: #e8edf2; }
+        .theme-light-4 { background: #fef9e8; }
+
+        .app-container {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        /* Кнопка настроек в правом верхнем углу */
+        .settings-top-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 44px;
+            height: 44px;
+            border-radius: 44px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            z-index: 100;
+            transition: transform 0.2s;
+            color: white;
+        }
+
+        .theme-light-1 .settings-top-btn,
+        .theme-light-2 .settings-top-btn,
+        .theme-light-3 .settings-top-btn,
+        .theme-light-4 .settings-top-btn {
+            background: rgba(0, 0, 0, 0.08);
+            color: #1a1a1a;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .settings-top-btn:hover {
+            transform: rotate(30deg);
+        }
+
+        .auth-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            border-radius: 32px;
+            padding: 40px 32px;
+            max-width: 420px;
+            width: 100%;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .theme-light-1 .auth-card,
+        .theme-light-2 .auth-card,
+        .theme-light-3 .auth-card,
+        .theme-light-4 .auth-card {
+            background: rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .logo-icon {
+            font-size: 48px;
+        }
+
+        h1 {
+            font-size: 32px;
+            color: white;
+            margin-top: 8px;
+        }
+
+        .theme-light-1 h1,
+        .theme-light-2 h1,
+        .theme-light-3 h1,
+        .theme-light-4 h1 {
+            color: #1a1a1a;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 32px;
+            font-size: 14px;
+        }
+
+        .auth-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 60px;
+            padding: 4px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            background: transparent;
+            border: none;
+            padding: 12px;
+            border-radius: 60px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .tab-btn.active {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+        }
+
+        .theme-light-1 .tab-btn.active {
+            background: white;
+            color: black;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .auth-form {
+            display: none;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .auth-form.active {
+            display: flex;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px 18px;
+            border-radius: 60px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.08);
+            color: white;
+            font-size: 15px;
+            outline: none;
+        }
+
+        .theme-light-1 input {
+            background: rgba(0, 0, 0, 0.03);
+            border-color: rgba(0, 0, 0, 0.1);
+            color: #1a1a1a;
+        }
+
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .submit-btn {
+            width: 100%;
+            background: #007aff;
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 60px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        /* Панель настроек */
+        .settings-sidebar {
+            position: fixed;
+            top: 0;
+            right: -320px;
+            width: 280px;
+            height: 100%;
+            background: rgba(20, 20, 20, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 24px;
+            transition: right 0.3s;
+            z-index: 1000;
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .settings-sidebar.open {
+            right: 0;
+        }
+
+        .theme-light-1 .settings-sidebar {
+            background: rgba(245, 245, 247, 0.98);
+            border-left: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 28px;
+            color: white;
+        }
+
+        .theme-light-1 .sidebar-header {
+            color: black;
+        }
+
+        .close-settings {
+            background: none;
+            border: none;
+            font-size: 28px;
+            color: inherit;
+            cursor: pointer;
+        }
+
+        .section-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 12px;
+            margin-top: 20px;
+        }
+
+        .section-title:first-of-type {
+            margin-top: 0;
+        }
+
+        .theme-light-1 .section-title {
+            color: rgba(0, 0, 0, 0.5);
+        }
+
+        .theme-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .theme-btn {
+            aspect-ratio: 1;
+            border-radius: 14px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .theme-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .theme-btn.active {
+            border-color: #007aff;
+        }
+
+        .dark-1 { background: #0a0a0a; }
+        .dark-2 { background: #1a1a1a; }
+        .dark-3 { background: #0f172a; }
+        .dark-4 { background: #1e1b2e; }
+        .light-1 { background: #ffffff; border: 1px solid #ddd; }
+        .light-2 { background: #f5f5f7; border: 1px solid #ddd; }
+        .light-3 { background: #e8edf2; border: 1px solid #ddd; }
+        .light-4 { background: #fef9e8; border: 1px solid #ddd; }
+    </style>
+</head>
+<body class="theme-dark-1">
+    <div class="app-container">
+        <button class="settings-top-btn" id="openSettings">⚙️</button>
+
+        <div class="auth-card">
+            <div class="logo">
+                <div class="logo-icon">💬</div>
+                <h1>Lumina</h1>
+            </div>
+            <p class="subtitle">минималистичный мессенджер</p>
+
+            <div class="auth-tabs">
+                <button class="tab-btn active" data-tab="login">Вход</button>
+                <button class="tab-btn" data-tab="register">Регистрация</button>
+            </div>
+
+            <form id="loginForm" class="auth-form active">
+                <input type="text" id="loginUsername" placeholder="Логин или Email" required>
+                <input type="password" id="loginPassword" placeholder="Пароль" required>
+                <button type="submit" class="submit-btn">Войти</button>
+            </form>
+
+            <form id="registerForm" class="auth-form">
+                <input type="text" id="regUsername" placeholder="Имя пользователя" required>
+                <input type="email" id="regEmail" placeholder="Email" required>
+                <input type="password" id="regPassword" placeholder="Пароль" required>
+                <button type="submit" class="submit-btn">Создать аккаунт</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Панель настроек -->
+    <div class="settings-sidebar" id="settingsSidebar">
+        <div class="sidebar-header">
+            <h3>Настройки темы</h3>
+            <button class="close-settings" id="closeSettings">✕</button>
+        </div>
+        <div class="section-title">🌙 Темные темы</div>
+        <div class="theme-grid">
+            <button class="theme-btn dark-1" data-theme="theme-dark-1" title="Черный"></button>
+            <button class="theme-btn dark-2" data-theme="theme-dark-2" title="Темно-серый"></button>
+            <button class="theme-btn dark-3" data-theme="theme-dark-3" title="Слейт"></button>
+            <button class="theme-btn dark-4" data-theme="theme-dark-4" title="Фиолетовый"></button>
+        </div>
+        <div class="section-title">☀️ Светлые темы</div>
+        <div class="theme-grid">
+            <button class="theme-btn light-1" data-theme="theme-light-1" title="Белый"></button>
+            <button class="theme-btn light-2" data-theme="theme-light-2" title="Светло-серый"></button>
+            <button class="theme-btn light-3" data-theme="theme-light-3" title="Голубоватый"></button>
+            <button class="theme-btn light-4" data-theme="theme-light-4" title="Кремовый"></button>
+        </div>
+    </div>
+
+    <script>
+        // Загрузка сохраненной темы
+        const savedTheme = localStorage.getItem('lumina_theme') || 'theme-dark-1';
+        document.body.className = savedTheme;
+
+        // Подсветка активной темы
+        function highlightTheme() {
+            const current = document.body.className;
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                if (btn.dataset.theme === current) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+
+        // Смена темы
+        document.querySelectorAll('.theme-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const theme = btn.dataset.theme;
+                document.body.className = theme;
+                localStorage.setItem('lumina_theme', theme);
+                highlightTheme();
+            });
+        });
+
+        // Переключение вкладок
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tab = btn.dataset.tab;
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+                document.getElementById(`${tab}Form`).classList.add('active');
+            });
+        });
+
+        // Открыть/закрыть настройки
+        const sidebar = document.getElementById('settingsSidebar');
+        const openBtn = document.getElementById('openSettings');
+        const closeBtn = document.getElementById('closeSettings');
+
+        openBtn.addEventListener('click', () => {
+            sidebar.classList.add('open');
+            highlightTheme();
+        });
+
+        closeBtn.addEventListener('click', () => {
+            sidebar.classList.remove('open');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (sidebar.classList.contains('open') && 
+                !sidebar.contains(e.target) && 
+                e.target !== openBtn &&
+                !openBtn.contains(e.target)) {
+                sidebar.classList.remove('open');
+            }
+        });
+
+        // Регистрация
+        document.getElementById('registerForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('regUsername').value;
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+
+            if (username && email && password) {
+                const users = JSON.parse(localStorage.getItem('lumina_users') || '[]');
+                if (users.find(u => u.username === username)) {
+                    alert('Пользователь уже существует');
+                    return;
+                }
+                users.push({ username, email, password });
+                localStorage.setItem('lumina_users', JSON.stringify(users));
+                alert('Регистрация успешна! Теперь войдите.');
+                document.querySelector('.tab-btn[data-tab="login"]').click();
+            } else {
+                alert('Заполните все поля');
+            }
+        });
+
+        // Вход
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+
+            const users = JSON.parse(localStorage.getItem('lumina_users') || '[]');
+            const user = users.find(u => (u.username === username || u.email === username) && u.password === password);
+
+            if (user) {
+                localStorage.setItem('lumina_current_user', JSON.stringify({
+                    username: user.username,
+                    email: user.email
+                }));
+                window.location.href = 'chat.html';
+            } else {
+                alert('Неверный логин или пароль');
+            }
+        });
+
+        highlightTheme();
+    </script>
+</body>
+</html>
